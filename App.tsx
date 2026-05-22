@@ -59,7 +59,16 @@ const INITIAL_REPORT: CollectorReport = {
   notes: ['等待首次采集']
 };
 
-const ALERT_LIMIT = 12;
+const MONITORING_DEFAULTS = {
+  alertLimit: 12,
+  pollingInterval: 12,
+  settings: {
+    priceThreshold: 900,
+    dropPercentage: 12,
+    notifyOnAvailability: true,
+    anomalySensitivity: 'medium' as MonitoringSettings['anomalySensitivity']
+  }
+};
 
 const formatTime = () => new Date().toLocaleTimeString('en-US', { hour12: false });
 
@@ -99,14 +108,12 @@ function App() {
   const [priceHistory, setPriceHistory] = useState<PricePoint[]>([]);
   const [collectorReport, setCollectorReport] = useState<CollectorReport>(INITIAL_REPORT);
   const [isLoading, setIsLoading] = useState(false);
-  const [polling, setPolling] = useState<PollingConfig>({ isActive: false, interval: 12 });
-  const [logs, setLogs] = useState<string[]>([]);
-  const [alertSettings, setAlertSettings] = useState<MonitoringSettings>({
-    priceThreshold: 900,
-    dropPercentage: 12,
-    notifyOnAvailability: true,
-    anomalySensitivity: 'medium'
+  const [polling, setPolling] = useState<PollingConfig>({
+    isActive: false,
+    interval: MONITORING_DEFAULTS.pollingInterval
   });
+  const [logs, setLogs] = useState<string[]>([]);
+  const [alertSettings, setAlertSettings] = useState<MonitoringSettings>(MONITORING_DEFAULTS.settings);
   const [alerts, setAlerts] = useState<AlertEvent[]>([]);
   const [savedGroups, setSavedGroups] = useState<Record<string, string>>({});
 
@@ -120,7 +127,7 @@ function App() {
 
   const pushAlerts = (newAlerts: AlertEvent[]) => {
     if (newAlerts.length === 0) return;
-    setAlerts((prev) => [...newAlerts, ...prev].slice(0, ALERT_LIMIT));
+    setAlerts((prev) => [...newAlerts, ...prev].slice(0, MONITORING_DEFAULTS.alertLimit));
     newAlerts.forEach((alert) => {
       addLog(`ALERT: ${alert.message}`);
     });

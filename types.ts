@@ -1,5 +1,7 @@
 export type PlatformName = 'Ctrip' | 'Fliggy' | 'Qunar';
 
+export const PLATFORMS: PlatformName[] = ['Ctrip', 'Fliggy', 'Qunar'];
+
 export interface Hotel {
   id: string;
   name: string;

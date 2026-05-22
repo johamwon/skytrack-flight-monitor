@@ -1,4 +1,5 @@
 import { CollectorReport, CollectorResult, CollectorTask, CompliancePolicy, Hotel, PlatformName, SearchParams } from '../types';
+import { BRANDS, HOTEL_NAMES, POLICIES, ROOM_TYPES, buildPriceCalendar } from './hotelDataUtils';
 
 const PLATFORM_POLICIES: CompliancePolicy[] = [
   {
@@ -33,22 +34,7 @@ const PLATFORM_STEPS: Record<PlatformName, string[]> = {
   Qunar: ['进入搜索页', '过滤房型', '抽取列表', '详情页校验']
 };
 
-const HOTEL_NAMES = ['万豪国际酒店', '洲际假日酒店', '君悦酒店', '雅高索菲特', '希尔顿逸林', '香格里拉'];
-const ROOM_TYPES = ['豪华大床房', '行政双床房', '高级景观房', '商务套房'];
-const POLICIES = ['含早/可取消', '无早/不可取消', '双早/可取消', '含早/限时取消'];
-const BRANDS = ['Marriott', 'IHG', 'Hyatt', 'Accor', 'Hilton', 'Shangri-La'];
-
-const buildPriceCalendar = (basePrice: number, checkIn: string): { date: string; price: number }[] => {
-  const start = new Date(checkIn);
-  return Array.from({ length: 7 }).map((_, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
-    return {
-      date: date.toISOString().split('T')[0],
-      price: Math.max(420, Math.round(basePrice + (Math.random() * 120 - 60)))
-    };
-  });
-};
+const MOCK_FAILURE_RATE = 0.1;
 
 const buildMockHotels = (platform: PlatformName, params: SearchParams): Hotel[] => {
   return Array.from({ length: 6 }).map((_, index) => {
@@ -138,7 +124,7 @@ export const collectHotelData = async (
     const task = createTask(platform);
     tasks.push(task);
 
-    const shouldFail = Math.random() < 0.1;
+    const shouldFail = Math.random() < MOCK_FAILURE_RATE;
     if (shouldFail) {
       task.status = 'failed';
       task.finishedAt = new Date().toISOString();

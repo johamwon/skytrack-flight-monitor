@@ -1,5 +1,6 @@
-import { CollectorResult, Hotel, SearchParams } from '../types';
+import { CollectorResult, Hotel, PLATFORMS, SearchParams } from '../types';
 import { collectHotelData, buildFallbackReport } from './collectorService';
+import { BRANDS, HOTEL_NAMES, POLICIES, ROOM_TYPES, buildPriceCalendar } from './hotelDataUtils';
 
 // In a real scenario, the API key should be securely managed.
 // For this demo, we assume it's available in process.env
@@ -11,25 +12,7 @@ declare var process: {
 
 const apiKey = process.env.API_KEY || '';
 
-const HOTEL_NAMES = ['万豪国际酒店', '洲际假日酒店', '君悦酒店', '雅高索菲特', '希尔顿逸林', '香格里拉'];
-const ROOM_TYPES = ['豪华大床房', '行政双床房', '高级景观房', '商务套房'];
-const POLICIES = ['含早/可取消', '无早/不可取消', '双早/可取消', '含早/限时取消'];
-const BRANDS = ['Marriott', 'IHG', 'Hyatt', 'Accor', 'Hilton', 'Shangri-La'];
-
-const buildPriceCalendar = (basePrice: number, checkIn: string): { date: string; price: number }[] => {
-  const start = new Date(checkIn);
-  return Array.from({ length: 7 }).map((_, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
-    return {
-      date: date.toISOString().split('T')[0],
-      price: Math.max(420, Math.round(basePrice + (Math.random() * 120 - 60)))
-    };
-  });
-};
-
 const generateStaticMock = (params: SearchParams): Hotel[] => {
-  const platforms: ('Ctrip' | 'Fliggy' | 'Qunar')[] = ['Ctrip', 'Fliggy', 'Qunar'];
   return Array.from({ length: 8 }).map((_, i) => {
     const basePrice = 520 + Math.round(Math.random() * 900);
     const availabilityRoll = Math.random();
@@ -46,7 +29,7 @@ const generateStaticMock = (params: SearchParams): Hotel[] => {
       brand: BRANDS[i % BRANDS.length],
       location: params.destination,
       rating,
-      platform: platforms[i % platforms.length],
+      platform: PLATFORMS[i % PLATFORMS.length],
       roomType: ROOM_TYPES[i % ROOM_TYPES.length],
       policy: POLICIES[i % POLICIES.length],
       price: basePrice,
