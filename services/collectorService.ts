@@ -34,8 +34,9 @@ const PLATFORM_STEPS: Record<PlatformName, string[]> = {
   Qunar: ['进入搜索页', '过滤房型', '抽取列表', '详情页校验']
 };
 
-// Demo-only: 10% simulated failure rate to exercise retry/quality monitoring flows.
-const MOCK_FAILURE_RATE = 0.1;
+// Demo-only: set VITE_MOCK_FAILURE_RATE=0 to disable simulated failures in production.
+const parsedFailureRate = Number(import.meta.env?.VITE_MOCK_FAILURE_RATE);
+const MOCK_FAILURE_RATE = Number.isFinite(parsedFailureRate) ? parsedFailureRate : 0.1;
 
 const buildMockHotels = (platform: PlatformName, params: SearchParams): Hotel[] => {
   return Array.from({ length: 6 }).map((_, index) => {

@@ -81,7 +81,7 @@ const FEATURE_HIGHLIGHTS = [
 
 const formatTimestamp = () => new Date().toLocaleTimeString('zh-CN', { hour12: false });
 
-// CNY price difference thresholds that trigger anomaly alerts.
+// CNY price difference thresholds that trigger anomaly alerts based on typical hotel nightly variance.
 const ANOMALY_THRESHOLDS: Record<MonitoringSettings['anomalySensitivity'], number> = {
   high: 120,
   medium: 200,
@@ -104,7 +104,7 @@ const buildSearchDefaults = (): SearchParams => {
   };
 };
 
-const buildHotelKey = (hotel: HotelOffer) => JSON.stringify([hotel.platform, hotel.name, hotel.roomType]);
+const buildHotelKey = (hotel: HotelOffer) => `${hotel.platform}::${hotel.name}::${hotel.roomType}`;
 
 // Thresholds represent price differences in CNY that trigger anomaly alerts.
 const getAnomalyThreshold = (sensitivity: MonitoringSettings['anomalySensitivity']) => ANOMALY_THRESHOLDS[sensitivity];

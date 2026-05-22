@@ -22,6 +22,7 @@ const generateStaticMock = (params: SearchParams): Hotel[] => {
     const historicLow = Math.min(...priceCalendar.map(item => item.price));
     const averagePrice = priceCalendar.reduce((sum, item) => sum + item.price, 0) / priceCalendar.length;
     const trend = basePrice > averagePrice + 80 ? 'up' : basePrice < averagePrice - 80 ? 'down' : 'stable';
+    const platform = PLATFORMS[Math.floor(Math.random() * PLATFORMS.length)];
 
     return {
       id: `MOCK-${i}-${Date.now()}`,
@@ -29,7 +30,7 @@ const generateStaticMock = (params: SearchParams): Hotel[] => {
       brand: BRANDS[i % BRANDS.length],
       location: params.destination,
       rating,
-      platform: PLATFORMS[i % PLATFORMS.length],
+      platform,
       roomType: ROOM_TYPES[i % ROOM_TYPES.length],
       policy: POLICIES[i % POLICIES.length],
       price: basePrice,
