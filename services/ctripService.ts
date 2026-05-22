@@ -29,12 +29,13 @@ export const loginToCtrip = async (credentials: CtripCredentials): Promise<Ctrip
   // 4. 处理会话和cookies
 
   try {
+    const timestamp = Date.now().toString(36);
     return {
       isLoggedIn: true,
-      token: 'mock_token_' + Math.random().toString(36).substr(2, 9),
+      token: `mock_token_${timestamp}`,
       cookies: {
         ctrip_login: 'true',
-        session_id: 'session_' + Math.random().toString(36).substr(2, 9)
+        session_id: `session_${timestamp}`
       }
     };
   } catch (error) {

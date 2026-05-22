@@ -58,8 +58,9 @@ const buildMockHotels = (platform: PlatformName, params: SearchParams): Hotel[] 
     const rating = [3, 4, 5][Math.floor(Math.random() * 3)];
     const brand = BRANDS[index % BRANDS.length];
     const priceCalendar = buildPriceCalendar(basePrice, params.checkIn);
-    const historicLow = Math.min(...priceCalendar.map(item => item.price), basePrice - 40);
-    const trend = basePrice > historicLow + 80 ? 'down' : basePrice < historicLow ? 'up' : 'stable';
+    const historicLow = Math.min(...priceCalendar.map(item => item.price));
+    const averagePrice = priceCalendar.reduce((sum, item) => sum + item.price, 0) / priceCalendar.length;
+    const trend = basePrice > averagePrice + 80 ? 'up' : basePrice < averagePrice - 80 ? 'down' : 'stable';
 
     return {
       id: `${platform}-${index}-${Date.now()}`,

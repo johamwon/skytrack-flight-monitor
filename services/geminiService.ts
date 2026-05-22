@@ -36,8 +36,9 @@ const generateStaticMock = (params: SearchParams): Hotel[] => {
     const availability = availabilityRoll > 0.2 ? (availabilityRoll > 0.8 ? 'Limited' : 'Available') : 'SoldOut';
     const rating = [3, 4, 5][Math.floor(Math.random() * 3)];
     const priceCalendar = buildPriceCalendar(basePrice, params.checkIn);
-    const historicLow = Math.min(...priceCalendar.map(item => item.price), basePrice - 50);
-    const trend = basePrice > historicLow + 80 ? 'down' : basePrice < historicLow ? 'up' : 'stable';
+    const historicLow = Math.min(...priceCalendar.map(item => item.price));
+    const averagePrice = priceCalendar.reduce((sum, item) => sum + item.price, 0) / priceCalendar.length;
+    const trend = basePrice > averagePrice + 80 ? 'up' : basePrice < averagePrice - 80 ? 'down' : 'stable';
 
     return {
       id: `MOCK-${i}-${Date.now()}`,
@@ -100,8 +101,9 @@ export const generateHotelData = async (params: SearchParams): Promise<Hotel[]> 
     return rawData.map((item: any, index: number) => {
       const basePrice = Number(item.price) || 880;
       const priceCalendar = buildPriceCalendar(basePrice, params.checkIn);
-      const historicLow = Math.min(...priceCalendar.map((entry) => entry.price), basePrice - 50);
-      const trend = basePrice > historicLow + 80 ? 'down' : basePrice < historicLow ? 'up' : 'stable';
+      const historicLow = Math.min(...priceCalendar.map((entry) => entry.price));
+      const averagePrice = priceCalendar.reduce((sum, entry) => sum + entry.price, 0) / priceCalendar.length;
+      const trend = basePrice > averagePrice + 80 ? 'up' : basePrice < averagePrice - 80 ? 'down' : 'stable';
 
       return {
         id: `${item.name}-${index}-${Date.now()}`,
