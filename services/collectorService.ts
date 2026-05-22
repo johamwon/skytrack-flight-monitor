@@ -34,7 +34,7 @@ const PLATFORM_STEPS: Record<PlatformName, string[]> = {
   Qunar: ['进入搜索页', '过滤房型', '抽取列表', '详情页校验']
 };
 
-// 10% simulated failure rate for testing collector resilience.
+// Demo-only: 10% simulated failure rate to exercise retry/quality monitoring flows.
 const MOCK_FAILURE_RATE = 0.1;
 
 const buildMockHotels = (platform: PlatformName, params: SearchParams): Hotel[] => {

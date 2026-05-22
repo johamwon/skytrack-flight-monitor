@@ -79,7 +79,14 @@ const FEATURE_HIGHLIGHTS = [
   { name: '相似酒店替代推荐', status: '规划中' }
 ];
 
-const formatTime = () => new Date().toLocaleTimeString('en-US', { hour12: false });
+const formatTimestamp = () => new Date().toLocaleTimeString('zh-CN', { hour12: false });
+
+// CNY price difference thresholds that trigger anomaly alerts.
+const ANOMALY_THRESHOLDS: Record<MonitoringSettings['anomalySensitivity'], number> = {
+  high: 120,
+  medium: 200,
+  low: 320
+};
 
 const buildSearchDefaults = (): SearchParams => {
   const today = new Date();
@@ -97,14 +104,10 @@ const buildSearchDefaults = (): SearchParams => {
   };
 };
 
-const buildHotelKey = (hotel: HotelOffer) => `${hotel.platform}-${hotel.name}-${hotel.roomType}`;
+const buildHotelKey = (hotel: HotelOffer) => JSON.stringify([hotel.platform, hotel.name, hotel.roomType]);
 
 // Thresholds represent price differences in CNY that trigger anomaly alerts.
-const getAnomalyThreshold = (sensitivity: MonitoringSettings['anomalySensitivity']) => {
-  if (sensitivity === 'high') return 120;
-  if (sensitivity === 'medium') return 200;
-  return 320;
-};
+const getAnomalyThreshold = (sensitivity: MonitoringSettings['anomalySensitivity']) => ANOMALY_THRESHOLDS[sensitivity];
 
 function App() {
   const [searchParams, setSearchParams] = useState<SearchParams>(buildSearchDefaults);
@@ -131,7 +134,7 @@ function App() {
   const lastSnapshotRef = useRef<HotelOffer[]>([]);
 
   const addLog = (message: string) => {
-    const time = formatTime();
+    const time = formatTimestamp();
     setLogs((prev) => [...prev.slice(-49), `[${time}] ${message}`]);
   };
 
@@ -183,7 +186,7 @@ function App() {
 
     nextHotels.forEach((hotel) => {
       const previous = previousMap.get(buildHotelKey(hotel));
-      const timestamp = formatTime();
+      const timestamp = formatTimestamp();
 
       if (hotel.price <= alertSettings.priceThreshold) {
         newAlerts.push({
@@ -248,7 +251,7 @@ function App() {
   };
 
   const updatePriceHistory = (offers: HotelOffer[]) => {
-    const now = formatTime();
+    const now = formatTimestamp();
     const getMinPrice = (platform: HotelOffer['platform']) => {
       const filtered = offers.filter(
         (hotel) => hotel.platform === platform && hotel.availability !== 'SoldOut'
