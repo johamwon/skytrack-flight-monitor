@@ -66,8 +66,19 @@ export const generateHotelData = async (params: SearchParams): Promise<Hotel[]> 
 
     const prompt = `
       Generate 6 realistic hotel room offers in ${params.destination} for ${params.checkIn} to ${params.checkOut}.
-      Include OTA platforms Ctrip, Fliggy, Qunar. Provide hotel name, brand, star rating, room type, cancellation policy, availability, and price in CNY (400-2000).
-      Return JSON array only.
+      Use OTA platforms Ctrip, Fliggy, Qunar. Return a JSON array ONLY with objects that follow this schema:
+      {
+        "name": string,
+        "brand": string,
+        "rating": number,
+        "platform": "Ctrip" | "Fliggy" | "Qunar",
+        "roomType": string,
+        "policy": string,
+        "availability": "Available" | "Limited" | "SoldOut",
+        "price": number,
+        "url": string
+      }
+      Prices should be in CNY between 400 and 2000. Do not include extra keys or text.
     `;
 
     const config = {

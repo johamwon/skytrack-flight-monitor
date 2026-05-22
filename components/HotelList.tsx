@@ -1,6 +1,7 @@
 import React from 'react';
 import { Hotel } from '../types';
 import { ArrowDownRight, ArrowUpRight, Bookmark, BookmarkCheck, ExternalLink } from 'lucide-react';
+import { HOTEL_GROUP_OPTIONS } from './hotelUiConstants';
 
 interface Props {
   hotels: Hotel[];
@@ -9,8 +10,6 @@ interface Props {
   onToggleSave: (hotelId: string) => void;
   onUpdateGroup: (hotelId: string, group: string) => void;
 }
-
-const GROUP_OPTIONS = ['商务差旅', '家庭出游', '周末度假', '长住观察'];
 
 export const HotelList: React.FC<Props> = ({ hotels, loading, savedGroups, onToggleSave, onUpdateGroup }) => {
   if (loading) {
@@ -124,7 +123,7 @@ export const HotelList: React.FC<Props> = ({ hotels, loading, savedGroups, onTog
                     onChange={(event) => onUpdateGroup(hotel.id, event.target.value)}
                     className="text-xs bg-slate-50 border border-slate-200 rounded-md px-2 py-1"
                   >
-                    {GROUP_OPTIONS.map((option) => (
+                    {HOTEL_GROUP_OPTIONS.map((option) => (
                       <option key={option} value={option}>
                         {option}
                       </option>

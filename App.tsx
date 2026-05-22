@@ -70,6 +70,15 @@ const MONITORING_DEFAULTS = {
   }
 };
 
+const FEATURE_HIGHLIGHTS = [
+  { name: '多平台比价', status: '已启用' },
+  { name: '价格日历 & 历史最低价', status: '已启用' },
+  { name: '价格预测趋势', status: '已启用' },
+  { name: '可订性追踪与提醒', status: '已启用' },
+  { name: '收藏与分组', status: '已启用' },
+  { name: '相似酒店替代推荐', status: '规划中' }
+];
+
 const formatTime = () => new Date().toLocaleTimeString('en-US', { hour12: false });
 
 const buildSearchDefaults = (): SearchParams => {
@@ -90,6 +99,7 @@ const buildSearchDefaults = (): SearchParams => {
 
 const buildHotelKey = (hotel: HotelOffer) => `${hotel.platform}-${hotel.name}-${hotel.roomType}`;
 
+// Thresholds represent price differences in CNY that trigger anomaly alerts.
 const getAnomalyThreshold = (sensitivity: MonitoringSettings['anomalySensitivity']) => {
   if (sensitivity === 'high') return 120;
   if (sensitivity === 'medium') return 200;
@@ -338,15 +348,6 @@ function App() {
     setSavedGroups((prev) => ({ ...prev, [hotelId]: group }));
   };
 
-  const featureHighlights = [
-    { name: '多平台比价', status: '已启用' },
-    { name: '价格日历 & 历史最低价', status: '已启用' },
-    { name: '价格预测趋势', status: '已启用' },
-    { name: '可订性追踪与提醒', status: '已启用' },
-    { name: '收藏与分组', status: '已启用' },
-    { name: '相似酒店替代推荐', status: '规划中' }
-  ];
-
   return (
     <div className="min-h-screen pb-20 bg-slate-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
@@ -483,7 +484,7 @@ function App() {
                 <h2 className="text-sm font-semibold text-slate-700">热门项目灵感</h2>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                {featureHighlights.map((feature) => (
+                {FEATURE_HIGHLIGHTS.map((feature) => (
                   <div key={feature.name} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg">
                     <span className="text-slate-700">{feature.name}</span>
                     <span className={`text-xs font-medium ${feature.status === '已启用' ? 'text-emerald-600' : 'text-slate-400'}`}>
