@@ -1,7 +1,5 @@
-import { Flight, SearchParams } from "../types";
-
-// 导入携程服务
-import { fetchCtripFlightData } from "./ctripService";
+import { CollectorResult, Hotel, SearchParams } from '../types';
+import { collectHotelData, buildFallbackReport } from './collectorService';
 
 // In a real scenario, the API key should be securely managed.
 // For this demo, we assume it's available in process.env
@@ -11,109 +9,141 @@ declare var process: {
   };
 };
 
-const apiKey = process.env.API_KEY || ''; 
+const apiKey = process.env.API_KEY || '';
 
-export const generateFlightData = async (params: SearchParams): Promise<Flight[]> => {
+const HOTEL_NAMES = ['万豪国际酒店', '洲际假日酒店', '君悦酒店', '雅高索菲特', '希尔顿逸林', '香格里拉'];
+const ROOM_TYPES = ['豪华大床房', '行政双床房', '高级景观房', '商务套房'];
+const POLICIES = ['含早/可取消', '无早/不可取消', '双早/可取消', '含早/限时取消'];
+const BRANDS = ['Marriott', 'IHG', 'Hyatt', 'Accor', 'Hilton', 'Shangri-La'];
+
+const buildPriceCalendar = (basePrice: number, checkIn: string): { date: string; price: number }[] => {
+  const start = new Date(checkIn);
+  return Array.from({ length: 7 }).map((_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    return {
+      date: date.toISOString().split('T')[0],
+      price: Math.max(420, Math.round(basePrice + (Math.random() * 120 - 60)))
+    };
+  });
+};
+
+const generateStaticMock = (params: SearchParams): Hotel[] => {
+  const platforms: ('Ctrip' | 'Fliggy' | 'Qunar')[] = ['Ctrip', 'Fliggy', 'Qunar'];
+  return Array.from({ length: 8 }).map((_, i) => {
+    const basePrice = 520 + Math.round(Math.random() * 900);
+    const availabilityRoll = Math.random();
+    const availability = availabilityRoll > 0.2 ? (availabilityRoll > 0.8 ? 'Limited' : 'Available') : 'SoldOut';
+    const rating = [3, 4, 5][Math.floor(Math.random() * 3)];
+    const priceCalendar = buildPriceCalendar(basePrice, params.checkIn);
+    const historicLow = Math.min(...priceCalendar.map(item => item.price), basePrice - 50);
+    const trend = basePrice > historicLow + 80 ? 'down' : basePrice < historicLow ? 'up' : 'stable';
+
+    return {
+      id: `MOCK-${i}-${Date.now()}`,
+      name: HOTEL_NAMES[i % HOTEL_NAMES.length],
+      brand: BRANDS[i % BRANDS.length],
+      location: params.destination,
+      rating,
+      platform: platforms[i % platforms.length],
+      roomType: ROOM_TYPES[i % ROOM_TYPES.length],
+      policy: POLICIES[i % POLICIES.length],
+      price: basePrice,
+      currency: 'CNY',
+      availability,
+      checkIn: params.checkIn,
+      checkOut: params.checkOut,
+      guests: params.guests,
+      rooms: params.rooms,
+      url: '#',
+      lastUpdated: new Date().toISOString(),
+      tags: ['价格预测', '可订性追踪'],
+      priceCalendar,
+      predictedTrend: trend,
+      historicLow
+    };
+  });
+};
+
+export const generateHotelData = async (params: SearchParams): Promise<Hotel[]> => {
   if (!apiKey) {
-    console.warn("No API Key provided, returning static mock data.");
+    console.warn('No API Key provided, returning static mock data.');
     return generateStaticMock(params);
   }
 
   try {
-    // 通过全局变量访问Google Generative AI库
     const GoogleGenerativeAI = (window as any).google?.generativeAI?.GoogleGenerativeAI;
     if (!GoogleGenerativeAI) {
-      throw new Error("Google Generative AI library not available");
+      throw new Error('Google Generative AI library not available');
     }
-    
+
     const ai = new GoogleGenerativeAI(apiKey);
-    const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-    
+    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
     const prompt = `
-      Generate 5 realistic flight options from ${params.origin} to ${params.destination} for the date ${params.date}.
-      Imagine you are scraping data from Ctrip, Fliggy, and Qunar.
-      Include a mix of airlines (Air China, China Eastern, Southern, Hainan).
-      
-      Strictly follow the JSON schema.
-      Generate realistic prices in CNY (Chinese Yuan) between 500 and 2000.
-      Vary the prices slightly to simulate real-time fluctuation.
+      Generate 6 realistic hotel room offers in ${params.destination} for ${params.checkIn} to ${params.checkOut}.
+      Include OTA platforms Ctrip, Fliggy, Qunar. Provide hotel name, brand, star rating, room type, cancellation policy, availability, and price in CNY (400-2000).
+      Return JSON array only.
     `;
 
     const config = {
-      responseMimeType: "application/json",
+      responseMimeType: 'application/json'
     };
 
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: config
     });
 
-    const rawData = JSON.parse(result.response.text() || "[]");
+    const rawData = JSON.parse(result.response.text() || '[]');
 
-    // Augment with IDs and URLs
-    return rawData.map((f: any, index: number) => ({
-      ...f,
-      id: `${f.flightNumber}-${index}-${Date.now()}`,
-      origin: params.origin,
-      destination: params.destination,
-      url: '#', // Mock URL
-    }));
+    return rawData.map((item: any, index: number) => {
+      const basePrice = Number(item.price) || 880;
+      const priceCalendar = buildPriceCalendar(basePrice, params.checkIn);
+      const historicLow = Math.min(...priceCalendar.map((entry) => entry.price), basePrice - 50);
+      const trend = basePrice > historicLow + 80 ? 'down' : basePrice < historicLow ? 'up' : 'stable';
 
+      return {
+        id: `${item.name}-${index}-${Date.now()}`,
+        name: item.name,
+        brand: item.brand || BRANDS[index % BRANDS.length],
+        location: params.destination,
+        rating: item.rating || 4,
+        platform: item.platform,
+        roomType: item.roomType || ROOM_TYPES[index % ROOM_TYPES.length],
+        policy: item.policy || POLICIES[index % POLICIES.length],
+        price: basePrice,
+        currency: 'CNY',
+        availability: item.availability || 'Available',
+        checkIn: params.checkIn,
+        checkOut: params.checkOut,
+        guests: params.guests,
+        rooms: params.rooms,
+        url: item.url || '#',
+        lastUpdated: new Date().toISOString(),
+        tags: ['价格日历', '历史最低价'],
+        priceCalendar,
+        predictedTrend: trend,
+        historicLow
+      };
+    });
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error('Gemini API Error:', error);
     return generateStaticMock(params);
   }
 };
 
-// Fallback if API fails or no key
-const generateStaticMock = (params: SearchParams): Flight[] => {
-  const platforms: ('Ctrip' | 'Fliggy' | 'Qunar')[] = ['Ctrip', 'Fliggy', 'Qunar'];
-  const airlines = ['Air China', 'China Eastern', 'Hainan Airlines'];
-  
-  return Array.from({ length: 5 }).map((_, i) => ({
-    id: `MOCK-${i}`,
-    airline: airlines[i % airlines.length],
-    flightNumber: `CA12${i}`,
-    departureTime: "10:00",
-    arrivalTime: "13:00",
-    origin: params.origin,
-    destination: params.destination,
-    price: 800 + Math.floor(Math.random() * 400),
-    platform: platforms[i % platforms.length],
-    url: '#'
-  }));
+export const fetchRealHotelData = async (
+  params: SearchParams,
+  platformSessions: Record<'Ctrip' | 'Fliggy' | 'Qunar', { isConnected: boolean }>
+): Promise<CollectorResult> => {
+  console.log('正在从 OTA 平台获取酒店数据...');
+  return collectHotelData(params, platformSessions);
 };
 
-/**
- * 从真实平台获取航班数据
- * @param params 搜索参数
- * @param platformSessions 各平台会话信息
- * @returns 航班数据数组
- */
-export const fetchRealFlightData = async (params: SearchParams, platformSessions: any): Promise<Flight[]> => {
-  console.log("正在从真实平台获取航班数据...");
-  
-  const allFlights: Flight[] = [];
-  
-  // 如果携程已连接，获取真实数据
-  if (platformSessions.Ctrip && platformSessions.Ctrip.isConnected) {
-    try {
-      const ctripFlights = await fetchCtripFlightData(params, platformSessions.Ctrip.session);
-      allFlights.push(...ctripFlights);
-      console.log(`成功从携程获取 ${ctripFlights.length} 条航班数据`);
-    } catch (error) {
-      console.error("获取携程航班数据失败:", error);
-    }
-  }
-  
-  // 如果其他平台已连接，也可以类似处理
-  // 这里可以添加飞猪、去哪儿的逻辑
-  
-  // 如果没有任何平台连接，回退到模拟数据
-  if (allFlights.length === 0) {
-    console.log("未连接任何平台，使用模拟数据");
-    return generateStaticMock(params);
-  }
-  
-  return allFlights;
+export const buildAiFallbackResult = async (params: SearchParams, reason: string): Promise<CollectorResult> => {
+  return {
+    hotels: await generateHotelData(params),
+    report: buildFallbackReport(reason)
+  };
 };

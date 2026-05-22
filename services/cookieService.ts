@@ -11,7 +11,7 @@ export interface PlatformCookies {
 }
 
 // 存储键名
-const COOKIE_STORAGE_KEY = 'ticket_monitor_platform_cookies';
+const COOKIE_STORAGE_KEY = 'hotel_monitor_platform_cookies';
 
 /**
  * 保存平台cookie

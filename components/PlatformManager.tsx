@@ -91,7 +91,7 @@ export const PlatformManager = ({ platforms, onToggleConnection }) => {
       'h2',
       { className: 'text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2' },
       React.createElement(Lock, { className: 'w-5 h-5 text-indigo-600' }),
-      '平台自动登录配置'
+      'OTA 自动登录配置'
     ),
     React.createElement(
       'div',
@@ -125,7 +125,7 @@ export const PlatformManager = ({ platforms, onToggleConnection }) => {
               p.lastSync && React.createElement(
                 'p',
                 { className: 'text-xs text-slate-400 mt-1' },
-                'Token有效期: 23h 59m'
+                'Cookie有效期: 23h 59m'
               )
             ),
             React.createElement(

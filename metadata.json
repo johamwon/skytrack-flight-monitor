@@ -1,5 +1,5 @@
 {
-  "name": "SkyTrack - Flight Price Monitor",
-  "description": "A minimalist, real-time flight price tracking dashboard that simulates crawling major OTAs (Ctrip, Fliggy, Qunar) using Gemini AI for data generation.",
+  "name": "SkyTrack - Hotel Price Monitor",
+  "description": "A real-time hotel price monitoring dashboard that simulates OTA collection with CDP concepts, compliance controls, and AI fallback generation.",
   "requestFramePermissions": []
 }

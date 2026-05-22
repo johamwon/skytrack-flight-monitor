@@ -26,7 +26,7 @@ export const PriceHistoryChart: React.FC<Props> = ({ data }) => {
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-[400px]">
-      <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">实时价格趋势 (CNY)</h3>
+      <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">酒店实时价格趋势 (CNY)</h3>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}

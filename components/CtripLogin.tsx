@@ -44,12 +44,12 @@ export const CtripLogin = ({ onCookieCaptured }) => {
     React.createElement(
       'h2',
       { className: 'text-xl font-bold text-slate-900 mb-2' },
-      '携程账户登录设置'
+      '携程酒店账户登录设置'
     ),
     React.createElement(
       'p',
       { className: 'text-slate-600 mb-6' },
-      '通过人工登录获取访问权限，以便从携程获取实时航班数据'
+      '通过人工登录获取访问权限，以便从携程获取实时酒店报价'
     ),
 
     step === 1 && React.createElement(
@@ -122,7 +122,7 @@ export const CtripLogin = ({ onCookieCaptured }) => {
         React.createElement(
           'p',
           { className: 'text-slate-600 text-sm mb-3' },
-          '我们需要获取您的登录Cookie来访问携程的航班数据。这些信息仅存储在您的本地浏览器中，不会上传到任何服务器。'
+          '我们需要获取您的登录Cookie来访问携程的酒店数据。这些信息仅存储在您的本地浏览器中，不会上传到任何服务器。'
         ),
         React.createElement(
           'div',
@@ -177,7 +177,7 @@ export const CtripLogin = ({ onCookieCaptured }) => {
         React.createElement(
           'p',
           { className: 'text-green-800 text-sm' },
-          '已成功获取您的登录信息，现在可以访问携程的航班数据了。'
+          '已成功获取您的登录信息，现在可以访问携程的酒店数据了。'
         )
       ),
 
